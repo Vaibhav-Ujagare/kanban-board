@@ -9,16 +9,16 @@ removeBoard.addEventListener("click", function () {
   if (!input) {
     return;
   }
-  localStorage.removeItem(input);
+  localStorage.removeItem(input.toUpperCase());
   location.reload();
 });
 
 addNewBoard.addEventListener("click", () => {
-  const input = prompt("Enter the board name");
+  let input = prompt("Enter the board name");
+  input = input.toUpperCase();
   if (!input) {
     return;
   }
-
   createNewBoard(input);
   const now = new Date().toLocaleString();
   saveBoardsToLocalStorage(input, now);
@@ -29,18 +29,6 @@ function saveBoardsToLocalStorage(colId, boardCreationDate) {
   boards.push({ colId: colId, boardCreationDate: boardCreationDate });
   localStorage.setItem(colId, JSON.stringify(boards));
 }
-
-console.log(document.querySelectorAll(".boards"));
-
-function test() {
-  const keys = Object.keys(localStorage);
-  keys.forEach((key) => {
-    const x = localStorage.getItem(key);
-    console.log(x);
-  });
-}
-
-test();
 
 function createNewBoard(input) {
   const newBoard = document.createElement("board");
@@ -148,10 +136,8 @@ function loadTasksFromLocalStorage() {
     }
 
     const tasks = JSON.parse(localStorage.getItem(colId)) || [];
-    console.log(tasks);
     tasks.forEach(({ boardCreationDate, text, date }) => {
       if (!boardCreationDate) {
-        console.log("true");
         const taskElement = createTaskElement(text);
         taskElement.querySelector("small").innerText = `${date} `;
         document.getElementById(`${colId}-tasks`).appendChild(taskElement);
@@ -196,6 +182,8 @@ function createTaskElement(taskText) {
 
   const todoAddedDate = new Date().toLocaleString();
   dateElement.innerText = `Task Added in TODO: ${todoAddedDate}`;
+
+ 
   textElement.innerText = taskText;
   editButton.innerText = "Edit";
   deleteButton.innerText = "Delete";
