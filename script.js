@@ -165,16 +165,29 @@ function updateLocalStorage() {
   });
 }
 
+function splitParagraph(text, chunkSize) {
+  let words = text; // Split into words
+  let result = [];
+
+  for (let i = 0; i < words.length; i += chunkSize) {
+    result.push(words.slice(i, i + chunkSize)); // Join 30-word chunks
+  }
+
+  return result;
+}
+
 function createTaskElement(taskText) {
   const taskElement = document.createElement("div");
   const textContainer = document.createElement("div");
   const actionContainer = document.createElement("div");
   const editButton = document.createElement("button");
   const deleteButton = document.createElement("button");
+  const textDiv = document.createElement("div");
   const textElement = document.createElement("p");
   const dateElement = document.createElement("small");
 
-  textContainer.classList.add("task-text");
+  textContainer.classList.add("task-container");
+  textDiv.classList.add("task-text");
   actionContainer.classList.add("task-actions");
   editButton.classList.add("edit-task");
   deleteButton.classList.add("delete-task");
@@ -183,7 +196,6 @@ function createTaskElement(taskText) {
   const todoAddedDate = new Date().toLocaleString();
   dateElement.innerText = `Task Added in TODO: ${todoAddedDate}`;
 
- 
   textElement.innerText = taskText;
   editButton.innerText = "Edit";
   deleteButton.innerText = "Delete";
@@ -205,11 +217,24 @@ function createTaskElement(taskText) {
     updateLocalStorage();
   });
 
+  if (taskText.length >= 30) {
+    let chunks = splitParagraph(taskText, 35);
+
+    chunks.forEach((chunk) => {
+      let p = document.createElement("p");
+      p.textContent = chunk;
+      textDiv.appendChild(p);
+    });
+  }else{
+    textElement.textContent = taskText;
+    textDiv.appendChild(textElement);
+  }
+
   taskElement.setAttribute("draggable", true);
   taskElement.addEventListener("dragstart", dragStart);
   taskElement.addEventListener("dragend", dragEnd);
 
-  textContainer.appendChild(textElement);
+  textContainer.appendChild(textDiv);
   taskElement.appendChild(textContainer);
   taskElement.appendChild(actionContainer);
   textContainer.appendChild(dateElement);
