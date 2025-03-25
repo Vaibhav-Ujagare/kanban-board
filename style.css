@@ -1,0 +1,162 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  padding: 10px 20px;
+}
+
+.boards {
+  display: flex;
+  /* max-width: 100%; */
+  gap: 10px;
+  padding: 10px;
+  overflow: auto;
+  border-radius: 10px;
+  overflow-x: auto;
+  align-items: center;
+  place-content: center;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  white-space: nowrap;
+}
+
+.container {
+  min-width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow-x: auto;
+}
+
+.board {
+  min-width: 450px;
+  max-height: 750px;
+  gap: 10px;
+  padding: 20px;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: #ababab;
+}
+
+.boards .selected {
+  background-color: #e77c7c;
+}
+
+.tasks {
+  min-height: 70vh;
+  width: 100%;
+  padding: 10px;
+  border-radius: 10px;
+  gap: 10px;
+  overflow-y: auto;
+}
+
+input {
+  width: fit-content;
+}
+
+.tasks-input {
+  width: 100%;
+  padding: 10px 10px;
+  margin: 10px 0;
+  border: 1px solid #000000;
+}
+
+.add-tasks {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  padding: 10px 10px;
+  border-radius: 8px;
+  background-color: #4f32f2;
+  color: #ffffff;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.3s ease;
+}
+
+.add-tasks:hover {
+  background-color: #1d05a5;
+}
+
+.card {
+  background-color: #4f32f2;
+  color: #ffffff;
+  padding: 10px;
+  font-size: 1.2rem;
+  margin: 10px 0;
+  cursor: grab;
+  border-radius: 10px;
+}
+
+.task-text {
+  display: flex;
+  flex-direction: column;
+  justify-content: start;
+  align-items: start;
+  width: 100%;
+  gap: 10px;
+  margin-bottom: 5px;
+  padding: 5px;
+}
+
+.task-actions {
+  display: flex;
+  gap: 10px;
+  padding: 5px;
+  margin-top: 10px;
+}
+
+small {
+  font-size: 0.8rem;
+  color: #ffffff;
+  background-color: #4f32f2;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.task-actions button {
+  padding: 5px 10px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.board-actions {
+  width: 100%;
+  border-radius: 10px;
+}
+
+.addNewBoard {
+  height: 30px;
+  width: 100px;
+  background-color: #4f32f2;
+  color: #ffffff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin: 10px 10px;
+}
+
+.removeBoard {
+  height: 30px;
+  width: 120px;
+  background-color: #f23245;
+  color: #ffffff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin: 10px 10px;
+}
