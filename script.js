@@ -6,8 +6,6 @@ function saveBoardsToLocalStorage(colId, boardCreationDate) {
   localStorage.setItem(colId, JSON.stringify(boards));
 }
 
-const addTaskButton = document.querySelector(".add-tasks");
-
 const allBoards = document.querySelectorAll(".tasks");
 allBoards.forEach((board) => {
   board.addEventListener("dragover", dragOver);
@@ -15,9 +13,7 @@ allBoards.forEach((board) => {
 
 function dragOver(event) {
   event.preventDefault();
-
   const draggedElement = document.querySelector(".dragging");
-
   const afterElement = getDragAfterElement(this, event.pageY);
   if (afterElement === null) {
     this.appendChild(draggedElement);
@@ -47,177 +43,318 @@ function addTask(colId) {
   const input = document.getElementById(`${colId}-input`);
   const taskText = input.value.trim();
 
-  if (taskText === "") {
-    return;
-  }
-  console.log(colId);
-  const taskElement = createTaskElement(taskText, colId);
+  if (taskText === "") return;
 
+  // Generate a unique ID for the task
+  const cardId = crypto.randomUUID(); // Generates a persistent unique ID
+
+  const taskElement = createTaskElement(
+    taskText,
+    colId,
+    cardId,
+    new Date().toLocaleString()
+  );
   document.getElementById(`${colId}-tasks`).appendChild(taskElement);
+
   updateTasksCount(colId);
-  const taskDate = taskElement.querySelector("small").innerText;
-  const cardId = taskElement.querySelector(".card-id").innerHTML;
-  saveTasksToLocalStorage(colId, cardId, taskText, taskDate);
+
+  // Save task to localStorage with the unique ID
+  saveTasksToLocalStorage(colId, cardId, taskText, new Date().toLocaleString());
 
   input.value = "";
 }
 
 function saveTasksToLocalStorage(colId, cardId, taskText, taskDate) {
-  const tasks = JSON.parse(localStorage.getItem(colId)) || [];
-  tasks.push({
-    id: cardId,
-    text: taskText,
-    date: taskDate || new Date().toLocaleString(),
+  let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+
+  // Check if task already exists
+  let task = tasks.find((t) => t.id === cardId);
+
+  if (!task) {
+    // If task is new, add it
+    task = {
+      id: cardId,
+      text: taskText,
+      history: [],
+    };
+    tasks.push(task);
+  }
+
+  // Add history entry
+  task.history.push({
+    board: colId,
+    time: taskDate || new Date().toLocaleString(),
   });
-  localStorage.setItem(colId, JSON.stringify(tasks));
+
+  // Save back to localStorage
+  localStorage.setItem("tasks", JSON.stringify(tasks));
 }
 
 function loadTasksFromLocalStorage() {
-  const keys = Object.keys(localStorage);
+  let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
 
-  keys.forEach((colId) => {
-    let tasks = JSON.parse(localStorage.getItem(colId)) || [];
+  // ✅ Clear all boards to prevent duplicate rendering
+  document
+    .querySelectorAll(".tasks")
+    .forEach((board) => (board.innerHTML = ""));
 
-    tasks.forEach(({ text, date }) => {
-      const taskElement = createTaskElement(text, colId);
-      taskElement.querySelector("small").innerText = `${date} `;
-      document.getElementById(`${colId}-tasks`).appendChild(taskElement);
+  // ✅ Track which tasks have been added already (to prevent duplicates)
+  let renderedTaskIds = new Set();
+
+  tasks.forEach((task) => {
+    let lastBoard = task.history[task.history.length - 1].board; // Get the most recent board
+    let lastUpdatedTime = null;
+    task.history.forEach((record) => {
+      console.log(record.time);
+      lastUpdatedTime = record.time;
     });
-
-    updateTasksCount(colId);
+    // ✅ Ensure the task is not added multiple times
+    if (!renderedTaskIds.has(task.id)) {
+      const taskElement = createTaskElement(
+        task.text,
+        lastBoard,
+        task.id,
+        lastUpdatedTime
+      );
+      document.getElementById(`${lastBoard}-tasks`).appendChild(taskElement);
+      renderedTaskIds.add(task.id);
+    }
   });
+
+  // ✅ Ensure all task counts are updated correctly
+  updateAllTaskCounts();
 }
 
 function updateLocalStorage() {
-  const allBoards = document.querySelectorAll(".board .tasks");
+  let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
 
-  allBoards.forEach((board) => {
+  document.querySelectorAll(".board .tasks").forEach((board) => {
     const colId = board.id.replace("-tasks", "");
-    const tasks = [];
 
     board.querySelectorAll(".card").forEach((task) => {
-      const test = task.querySelectorAll("p");
-      let allText = [];
-      test.forEach((t) => {
-        allText.push(t.innerHTML);
-      });
-      const cardId = task.querySelector(".card-id").innerHTML;
-      const text = allText.join("");
-      const date = task.querySelector("small").innerText;
-      tasks.push({ cardId, text, date });
+      const cardId = task.getAttribute("data-id");
+      const newText = task.querySelector("p").textContent;
+      let existingTask = tasks.find((t) => t.id === cardId);
+      if (existingTask) {
+        // ✅ Fetch the last recorded time instead of overwriting
+        existingTask.text = newText;
+        let lastHistoryEntry =
+          existingTask.history.length > 0
+            ? existingTask.history[existingTask.history.length - 1]
+            : null;
+
+        console.log(lastHistoryEntry);
+        console.log(
+          "🕒 Keeping Last Timestamp:",
+          lastHistoryEntry ? lastHistoryEntry.time : "N/A"
+        );
+
+        existingTask.history.push({
+          board: colId,
+          time: lastHistoryEntry.time, // Preserve the last timestamp
+        });
+      } else {
+        // If it's a completely new task, add it with the correct timestamp
+        tasks.push({
+          id: cardId,
+          text: text,
+          history: [
+            {
+              board: colId,
+              time: new Date().toLocaleString(),
+            },
+          ],
+        });
+      }
     });
-
-    localStorage.setItem(colId, JSON.stringify(tasks));
-    console.log("reached");
   });
+
+  localStorage.setItem("tasks", JSON.stringify(tasks));
 }
 
-function splitParagraph(text, chunkSize) {
-  let words = text; // Split into words
-  let result = [];
-
-  for (let i = 0; i < words.length; i += chunkSize) {
-    result.push(words.slice(i, i + chunkSize)); // Join 30-word chunks
-  }
-  return result;
-}
-
-function createTaskElement(taskText, colId) {
+function createTaskElement(taskText, colId, cardId, taskAddedDate) {
   const taskElement = document.createElement("div");
-  const textContainer = document.createElement("div");
-  const actionContainer = document.createElement("div");
-  const editButton = document.createElement("button");
-  const deleteButton = document.createElement("button");
-  const textDiv = document.createElement("div");
-  const textElement = document.createElement("p");
-  const dateElement = document.createElement("small");
-  const cardId = document.createElement("small");
-
-  textContainer.classList.add("task-container");
-  textDiv.classList.add("task-text");
-  actionContainer.classList.add("task-actions");
-  editButton.classList.add("edit-task");
-  deleteButton.classList.add("delete-task");
   taskElement.classList.add("card");
-  cardId.classList.add("card-id");
+  taskElement.setAttribute("draggable", true);
+  taskElement.setAttribute("data-id", cardId);
 
-  const todoAddedDate = new Date().toLocaleString();
-  dateElement.innerText = `Task Added in ${colId}: ${todoAddedDate}`;
+  const textContainer = document.createElement("div");
+  textContainer.classList.add("task-container");
 
+  const textDiv = document.createElement("div");
+  textDiv.classList.add("task-text");
+
+  const textElement = document.createElement("p");
   textElement.innerText = taskText;
+
+  const dateElement = document.createElement("small");
+  dateElement.innerText = `Added to ${colId}: ${taskAddedDate}`;
+
+  const actionContainer = document.createElement("div");
+  actionContainer.classList.add("task-actions");
+
+  const editButton = document.createElement("button");
+  editButton.classList.add("edit-task");
   editButton.innerText = "Edit";
+
+  const deleteButton = document.createElement("button");
+  deleteButton.classList.add("delete-task");
   deleteButton.innerText = "Delete";
-  cardId.innerHTML = Date.now();
+
+  const cardIdElement = document.createElement("small");
+  cardIdElement.classList.add("card-id");
+  cardIdElement.innerText = Date.now();
 
   editButton.addEventListener("click", function () {
     const newText = prompt("Enter new text", textElement.textContent);
-
-    if (!newText || newText === textElement.textContent) {
-      return;
+    if (newText && newText !== textElement.textContent) {
+      textElement.textContent = newText;
+      updateLocalStorage(cardIdElement.innerText, colId);
     }
-
-    console.log(newText);
-    textElement.textContent = newText;
-    updateLocalStorage();
   });
 
   deleteButton.addEventListener("click", function () {
-    const colId = taskElement.parentElement.id.replace("-tasks", "");
+    const cardId = taskElement.getAttribute("data-id");
     taskElement.remove();
     updateTasksCount(colId);
-    updateLocalStorage();
+    removeTaskFromLocalStorage(cardId);
   });
 
-  textElement.textContent = taskText;
-  textDiv.appendChild(textElement);
-
-  taskElement.setAttribute("draggable", true);
-  cardId.setAttribute("display", "none");
   taskElement.addEventListener("dragstart", dragStart);
   taskElement.addEventListener("dragend", dragEnd);
 
+  textDiv.appendChild(textElement);
   textContainer.appendChild(textDiv);
-  taskElement.appendChild(textContainer);
-  taskElement.appendChild(actionContainer);
   textContainer.appendChild(dateElement);
+  taskElement.appendChild(textContainer);
   actionContainer.appendChild(editButton);
   actionContainer.appendChild(deleteButton);
-  actionContainer.appendChild(cardId);
+  taskElement.appendChild(actionContainer);
+  taskElement.appendChild(cardIdElement);
+
   return taskElement;
+}
+
+function dragEnd() {
+  this.classList.remove("dragging");
+
+  const newBoardId = this.parentElement.id.replace("-tasks", ""); // Get the new board ID
+  const cardId = this.getAttribute("data-id"); // Get the card ID
+
+  let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+
+  // Find the existing task
+  let taskIndex = tasks.findIndex((task) => task.id === cardId);
+
+  if (taskIndex !== -1) {
+    let task = tasks[taskIndex];
+    console.log(task);
+    // ✅ Get last recorded time from history
+    let lastHistoryEntry =
+      task.history.length > 0 ? task.history[task.history.length - 1] : null;
+
+    // ✅ Only push new history entry if board actually changed
+    let lastBoard = lastHistoryEntry ? lastHistoryEntry.board : null;
+    console.log(lastHistoryEntry.time);
+    if (lastBoard !== newBoardId) {
+      task.history.push({
+        board: newBoardId,
+        time: new Date().toLocaleString(), // Use last recorded time or fallback
+      });
+    }
+
+    // ✅ Update the UI timestamp directly on the moved task
+    const dateElement = this.querySelector("small");
+    if (dateElement) {
+      dateElement.innerText = `Added to ${newBoardId}: ${
+        lastHistoryEntry ? lastHistoryEntry.time : "N/A"
+      }`;
+    }
+
+    localStorage.setItem("tasks", JSON.stringify(tasks));
+
+    // ✅ Update counts for all boards
+    updateAllTaskCounts();
+  }
 }
 
 function dragStart() {
   this.classList.add("dragging");
-  // console.log(this.parentElement.id);
 }
 
-function dragEnd() {
-  const boardNames = getAllBoardNames();
-  const allBoardNames = [];
-  boardNames.forEach((board) => {
-    allBoardNames.push(board.id);
-  });
-  console.log(this.parentElement.id);
-  this.classList.remove("dragging");
-  allBoardNames.forEach((colId) => {
-    updateTasksCount(colId.replace("-tasks", ""));
-  });
-  updateLocalStorage();
+function removeTaskFromLocalStorage(cardId) {
+  let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+  tasks = tasks.filter((task) => task.id !== cardId);
+  localStorage.setItem("tasks", JSON.stringify(tasks));
 }
 
-function getAllBoardNames() {
-  const boardNames = [];
-  const getAllBoards = document.querySelectorAll(".board .tasks");
-
-  getAllBoards.forEach((board) => {
-    boardNames.push(board.id);
-  });
-  return getAllBoards;
-}
-
-// Database operations
 function updateTasksCount(colId) {
+  // Get the number of cards inside the board
   const tasksCount = document.querySelectorAll(`#${colId}-tasks .card`).length;
 
-  document.getElementById(`${colId}-count`).textContent = tasksCount;
+  // Update the count display
+  const countElement = document.getElementById(`${colId}-count`);
+  if (countElement) {
+    countElement.textContent = tasksCount;
+  }
+}
+function updateAllTaskCounts() {
+  document.querySelectorAll(".board .tasks").forEach((board) => {
+    const colId = board.id.replace("-tasks", "");
+    updateTasksCount(colId);
+  });
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+  document.addEventListener("contextmenu", function (event) {
+    event.preventDefault(); // Prevent the default context menu
+
+    const card = event.target.closest(".card"); // Get the card element
+    if (!card) return;
+
+    const cardId = card.getAttribute("data-id");
+    showCardHistory(cardId, event.pageX, event.pageY);
+  });
+});
+
+function showCardHistory(cardId, x, y) {
+  let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+  let task = tasks.find((t) => t.id === cardId);
+
+  if (!task) return;
+
+  // Create or update the history popup
+  let historyPopup = document.getElementById("history-popup");
+  if (!historyPopup) {
+    historyPopup = document.createElement("div");
+    historyPopup.id = "history-popup";
+    historyPopup.style.position = "absolute";
+    historyPopup.style.background = "white";
+    historyPopup.style.border = "1px solid black";
+    historyPopup.style.padding = "10px";
+    historyPopup.style.borderRadius = "5px";
+    historyPopup.style.boxShadow = "0px 0px 5px rgba(0,0,0,0.3)";
+    historyPopup.style.zIndex = "1000";
+    document.body.appendChild(historyPopup);
+  }
+
+  historyPopup.innerHTML = `<strong>History:</strong><br>`;
+  task.history.forEach((entry, index) => {
+    historyPopup.innerHTML += `${index + 1}. Moved to <b>${
+      entry.board
+    }</b> at <i>${entry.time}</i><br>`;
+  });
+
+  // Position the popup near the cursor
+  historyPopup.style.left = `${x}px`;
+  historyPopup.style.top = `${y}px`;
+
+  // Hide the popup when clicking anywhere
+  document.addEventListener(
+    "click",
+    () => {
+      historyPopup.remove();
+    },
+    { once: true }
+  );
 }
