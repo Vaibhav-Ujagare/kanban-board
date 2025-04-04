@@ -1,73 +1,17 @@
 document.addEventListener("DOMContentLoaded", loadTasksFromLocalStorage);
 
-const addNewBoard = document.querySelector(".addNewBoard");
-const removeBoard = document.querySelector(".removeBoard");
-const boards = document.querySelector(".boards");
-
-removeBoard.addEventListener("click", function () {
-  const input = prompt("Enter Board Name To Delete");
-  if (!input) {
-    return;
-  }
-  localStorage.removeItem(input.toUpperCase());
-  location.reload();
-});
-
-addNewBoard.addEventListener("click", () => {
-  let input = prompt("Enter the board name");
-  input = input.toUpperCase();
-  if (!input) {
-    return;
-  }
-  createNewBoard(input);
-  const now = new Date().toLocaleString();
-  saveBoardsToLocalStorage(input, now);
-});
-
 function saveBoardsToLocalStorage(colId, boardCreationDate) {
   const boards = [];
   boards.push({ colId: colId, boardCreationDate: boardCreationDate });
   localStorage.setItem(colId, JSON.stringify(boards));
 }
 
-function createNewBoard(input) {
-  const newBoard = document.createElement("board");
-  const newBoardTitle = document.createElement("h1");
-  const newBoardTasks = document.createElement("div");
-  const newBoardInput = document.createElement("input");
-  const newBoardButton = document.createElement("button");
+const addTaskButton = document.querySelector(".add-tasks");
 
-  newBoard.setAttribute("id", `${input}`);
-  newBoard.classList.add("board");
-  // newBoard.draggable = true;
-
-  newBoardTitle.innerHTML = `${input} (<span id=${input}-count>0</span>)`;
-
-  newBoardTasks.classList.add("tasks");
-  newBoardTasks.setAttribute("id", `${input}-tasks`);
-
-  newBoardInput.classList.add(`tasks-input`);
-  newBoardInput.setAttribute("id", `${input}-input`);
-  newBoardInput.type = "text";
-  newBoardInput.placeholder = "Enter Task";
-
-  newBoardButton.classList.add("add-tasks");
-  newBoardButton.innerHTML = "Add Task";
-  newBoardButton.onclick = function () {
-    addTask(input);
-  };
-
-  newBoard.appendChild(newBoardTitle);
-  newBoard.appendChild(newBoardTasks);
-  newBoard.appendChild(newBoardInput);
-  newBoard.appendChild(newBoardButton);
-  boards.appendChild(newBoard);
-
-  const allBoards = document.querySelectorAll(".tasks");
-  allBoards.forEach((board) => {
-    board.addEventListener("dragover", dragOver);
-  });
-}
+const allBoards = document.querySelectorAll(".tasks");
+allBoards.forEach((board) => {
+  board.addEventListener("dragover", dragOver);
+});
 
 function dragOver(event) {
   event.preventDefault();
@@ -106,21 +50,22 @@ function addTask(colId) {
   if (taskText === "") {
     return;
   }
-
-  const taskElement = createTaskElement(taskText);
+  console.log(colId);
+  const taskElement = createTaskElement(taskText, colId);
 
   document.getElementById(`${colId}-tasks`).appendChild(taskElement);
   updateTasksCount(colId);
   const taskDate = taskElement.querySelector("small").innerText;
-
-  saveTasksToLocalStorage(colId, taskText, taskDate);
+  const cardId = taskElement.querySelector(".card-id").innerHTML;
+  saveTasksToLocalStorage(colId, cardId, taskText, taskDate);
 
   input.value = "";
 }
 
-function saveTasksToLocalStorage(colId, taskText, taskDate) {
+function saveTasksToLocalStorage(colId, cardId, taskText, taskDate) {
   const tasks = JSON.parse(localStorage.getItem(colId)) || [];
   tasks.push({
+    id: cardId,
     text: taskText,
     date: taskDate || new Date().toLocaleString(),
   });
@@ -129,19 +74,14 @@ function saveTasksToLocalStorage(colId, taskText, taskDate) {
 
 function loadTasksFromLocalStorage() {
   const keys = Object.keys(localStorage);
-  // console.log(keys);
-  keys.forEach((colId) => {
-    if (!document.getElementById(`${colId}-tasks`) && colId !== "BoardsName") {
-      createNewBoard(colId);
-    }
 
-    const tasks = JSON.parse(localStorage.getItem(colId)) || [];
-    tasks.forEach(({ boardCreationDate, text, date }) => {
-      if (!boardCreationDate) {
-        const taskElement = createTaskElement(text);
-        taskElement.querySelector("small").innerText = `${date} `;
-        document.getElementById(`${colId}-tasks`).appendChild(taskElement);
-      }
+  keys.forEach((colId) => {
+    let tasks = JSON.parse(localStorage.getItem(colId)) || [];
+
+    tasks.forEach(({ text, date }) => {
+      const taskElement = createTaskElement(text, colId);
+      taskElement.querySelector("small").innerText = `${date} `;
+      document.getElementById(`${colId}-tasks`).appendChild(taskElement);
     });
 
     updateTasksCount(colId);
@@ -156,12 +96,19 @@ function updateLocalStorage() {
     const tasks = [];
 
     board.querySelectorAll(".card").forEach((task) => {
-      const text = task.querySelector("p").innerText;
+      const test = task.querySelectorAll("p");
+      let allText = [];
+      test.forEach((t) => {
+        allText.push(t.innerHTML);
+      });
+      const cardId = task.querySelector(".card-id").innerHTML;
+      const text = allText.join("");
       const date = task.querySelector("small").innerText;
-      tasks.push({ text, date });
+      tasks.push({ cardId, text, date });
     });
 
     localStorage.setItem(colId, JSON.stringify(tasks));
+    console.log("reached");
   });
 }
 
@@ -172,11 +119,10 @@ function splitParagraph(text, chunkSize) {
   for (let i = 0; i < words.length; i += chunkSize) {
     result.push(words.slice(i, i + chunkSize)); // Join 30-word chunks
   }
-
   return result;
 }
 
-function createTaskElement(taskText) {
+function createTaskElement(taskText, colId) {
   const taskElement = document.createElement("div");
   const textContainer = document.createElement("div");
   const actionContainer = document.createElement("div");
@@ -185,6 +131,7 @@ function createTaskElement(taskText) {
   const textDiv = document.createElement("div");
   const textElement = document.createElement("p");
   const dateElement = document.createElement("small");
+  const cardId = document.createElement("small");
 
   textContainer.classList.add("task-container");
   textDiv.classList.add("task-text");
@@ -192,20 +139,24 @@ function createTaskElement(taskText) {
   editButton.classList.add("edit-task");
   deleteButton.classList.add("delete-task");
   taskElement.classList.add("card");
+  cardId.classList.add("card-id");
 
   const todoAddedDate = new Date().toLocaleString();
-  dateElement.innerText = `Task Added in TODO: ${todoAddedDate}`;
+  dateElement.innerText = `Task Added in ${colId}: ${todoAddedDate}`;
 
   textElement.innerText = taskText;
   editButton.innerText = "Edit";
   deleteButton.innerText = "Delete";
+  cardId.innerHTML = Date.now();
 
   editButton.addEventListener("click", function () {
     const newText = prompt("Enter new text", textElement.textContent);
 
-    if (!newText) {
+    if (!newText || newText === textElement.textContent) {
       return;
     }
+
+    console.log(newText);
     textElement.textContent = newText;
     updateLocalStorage();
   });
@@ -217,20 +168,11 @@ function createTaskElement(taskText) {
     updateLocalStorage();
   });
 
-  if (taskText.length >= 30) {
-    let chunks = splitParagraph(taskText, 35);
-
-    chunks.forEach((chunk) => {
-      let p = document.createElement("p");
-      p.textContent = chunk;
-      textDiv.appendChild(p);
-    });
-  }else{
-    textElement.textContent = taskText;
-    textDiv.appendChild(textElement);
-  }
+  textElement.textContent = taskText;
+  textDiv.appendChild(textElement);
 
   taskElement.setAttribute("draggable", true);
+  cardId.setAttribute("display", "none");
   taskElement.addEventListener("dragstart", dragStart);
   taskElement.addEventListener("dragend", dragEnd);
 
@@ -240,12 +182,13 @@ function createTaskElement(taskText) {
   textContainer.appendChild(dateElement);
   actionContainer.appendChild(editButton);
   actionContainer.appendChild(deleteButton);
+  actionContainer.appendChild(cardId);
   return taskElement;
 }
 
 function dragStart() {
   this.classList.add("dragging");
-  console.log(this.parentElement.id);
+  // console.log(this.parentElement.id);
 }
 
 function dragEnd() {
@@ -254,6 +197,7 @@ function dragEnd() {
   boardNames.forEach((board) => {
     allBoardNames.push(board.id);
   });
+  console.log(this.parentElement.id);
   this.classList.remove("dragging");
   allBoardNames.forEach((colId) => {
     updateTasksCount(colId.replace("-tasks", ""));

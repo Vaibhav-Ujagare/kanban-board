@@ -10,48 +10,77 @@ body {
   padding: 10px 20px;
 }
 
+.container {
+  padding: 10px;
+  min-height: 700px;
+  min-width: 500px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  /* border: 1px solid red; */
+}
+
 .boards {
   display: flex;
-  max-height: 850px;
+  max-height: 750px;
   gap: 10px;
   padding: 10px;
   border-radius: 10px;
   align-items: center;
   place-content: center;
-  white-space: nowrap;
-}
-
-.container {
-  padding: 10px;
-  max-height: 850px;
-  min-width: 100%;
-  display: flex;
-  flex-direction: column;
-  /* flex-wrap: nowrap;
-  overflow-x: auto; */
-  gap: 10px;
+  /* border: 2px solid yellow; */
 }
 
 .board {
-  min-width: 400px;
-  max-height: 750px;
+  max-width: 450px;
+  max-height: 730px;
   gap: 10px;
   padding: 20px;
   border-radius: 10px;
   display: flex;
   flex-direction: column;
   align-items: center;
+  /* border: 1px solid blue; */
   background-color: #ababab;
 }
 
 .tasks {
   height: 750px;
-  width: 100%;
+  width: 440px;
   padding: 10px;
   border-radius: 10px;
   gap: 10px;
   overflow-y: auto;
-  /* background-color: #e77c7c; */
+  /* border: 2px solid pink */
+}
+
+.card {
+  background-color: #4f32f2;
+  color: #ffffff;
+  padding: 10px;
+  font-size: 1.2rem;
+  margin: 10px 0;
+  cursor: grab;
+  border-radius: 10px;
+  width: 400px;
+  display: flex;
+  flex-direction: column;
+  /* border: 2px solid brown */
+}
+
+.task-text {
+  justify-content: start;
+  align-items: start;
+  width: 380px;
+  gap: 10px;
+  margin-bottom: 5px;
+  padding: 5px;
+  /* border: 2px solid; */
+}
+
+.task-container {
+  width: 370px;
+  /* border: 2px solid chartreuse */
 }
 
 input {
@@ -83,25 +112,18 @@ input {
   background-color: #1d05a5;
 }
 
-.card {
-  background-color: #4f32f2;
-  color: #ffffff;
-  padding: 10px;
-  font-size: 1.2rem;
-  margin: 10px 0;
-  cursor: grab;
-  border-radius: 10px;
+
+
+
+.task-text p {
+  max-height: 100px;
+  overflow-y: auto;
+  word-wrap: break-word;
 }
 
-.task-text {
-  display: flex;
-  flex-direction: column;
-  justify-content: start;
-  align-items: start;
-  width: 100%;
-  gap: 10px;
-  margin-bottom: 5px;
-  padding: 5px;
+
+.card-id {
+  display: none;
 }
 
 .task-actions {

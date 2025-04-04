@@ -4,25 +4,81 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kan-Ban Board 2</title>
+    <title>Kan-Ban Board Local Storage</title>
+    <!-- <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous"> -->
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
+
     <div class="container">
-        <div class="board-actions">
-            <button type="button" class="addNewBoard"> Add Board</button>
-            <button type="button" class="removeBoard"> Remove Board</button>
-        </div>
+
         <div class="boards">
+            <board id="TODO" class="board">
+                <h1>TODO (<span id="TODO-count">0</span>)</h1>
+                <div class="tasks" id="TODO-tasks">
+                </div>
+                <input class="tasks-input" id="TODO-input" type="text" placeholder="Enter Task">
+                <button class="add-tasks" onclick="addTask('TODO')">Add Task</button>
+            </board>
+            <board id="IN-PROGRESS" class="board">
+                <h1>IN-PROGRESS (<span id="IN-PROGRESS-count">0</span>)</h1>
+                <div class="tasks" id="IN-PROGRESS-tasks">
+
+                </div>
+                <input class="tasks-input" id="IN-PROGRESS-input" type="text" placeholder="Enter Task">
+                <button class="add-tasks" onclick="addTask('IN-PROGRESS')">Add Task</button>
+            </board>
+            <board id="DONE" class="board">
+                <h1>DONE (<span id="DONE-count">0</span>)</h1>
+                <div class="tasks" id="DONE-tasks">
+
+                </div>
+                <input class="tasks-input" id="DONE-input" type="text" placeholder="Enter Task">
+                <button class="add-tasks" onclick="addTask('DONE')">Add Task</button>
+            </board>
+            <!-- 
+            <board id="TODO" class="board">
+                <h1>TODO (<span id="TODO-count">1</span>)</h1>
+                <div class="tasks" id="TODO-tasks">
+                    <div class="card" draggable="true">
+                        <div class="task-text">
+                            <p>
+                                Lorem ipsum dolor sit amet, consectetur adipisicing elit. In sunt consectetur non
+                                sit dolorum eius ut quae minus cupiditate. Voluptate, sunt. Facilis, quidem sapiente
+                                ad optio illum perspiciatis veniam facere!
+                                Lorem ipsum dolor sit amet, consectetur adipisicing elit. In sunt consectetur non
+                                sit dolorum eius ut quae minus cupiditate. Voluptate, sunt. Facilis, quidem sapiente
+                                ad optio illum perspiciatis veniam facere!
+                            </p>
+                        </div>
+                        <small>Task Added in TODO: 04/04/2025, 15:26:29 </small>
+
+                        <div class="task-actions">
+                            <button class="edit-task">Edit</button>
+                            <button class="delete-task">Delete</button>
+                            <small class="card-id" display="none">1743761994372</small>
+                        </div>
+                    </div>
+                </div>
+                <input class="tasks-input" id="TODO-input" type="text" placeholder="Enter Task">
+                <button class="add-tasks" onclick="addTask('TODO')">Add Task</button>
+            </board> -->
 
         </div>
     </div>
 
-    
-</body>
-<script src="script.js"></script>
 
+</body>
+
+<script src="script.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"
+    integrity="sha384-IQsoLXl5PILFhosVNubq5LC7Qb9DXgDA9i+tQ8Zj3iwWAwPtgFTxbJ8NT4GN1R8p"
+    crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js"
+    integrity="sha384-cVKIPhGWiC2Al4u+LWgxfKTRIcfu0JTxR+EQDz/bgldoEyl4H0zUF0QKbrJ0EcQF"
+    crossorigin="anonymous"></script>
 
 </html>
