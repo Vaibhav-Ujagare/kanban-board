@@ -110,6 +110,7 @@ function loadTasksFromLocalStorage() {
     });
     // ✅ Ensure the task is not added multiple times
     if (!renderedTaskIds.has(task.id)) {
+      console.log(task.text);
       const taskElement = createTaskElement(
         task.text,
         lastBoard,
@@ -133,7 +134,7 @@ function updateLocalStorage() {
 
     board.querySelectorAll(".card").forEach((task) => {
       const cardId = task.getAttribute("data-id");
-      const newText = task.querySelector("p").textContent;
+      const newText = task.querySelector("p").innerHTML;
       let existingTask = tasks.find((t) => t.id === cardId);
       if (existingTask) {
         // ✅ Fetch the last recorded time instead of overwriting
@@ -151,7 +152,7 @@ function updateLocalStorage() {
 
         existingTask.history.push({
           board: colId,
-          time: lastHistoryEntry.time, // Preserve the last timestamp
+          time: new Date().toLocaleString(), // Preserve the last timestamp
         });
       } else {
         // If it's a completely new task, add it with the correct timestamp
@@ -185,7 +186,7 @@ function createTaskElement(taskText, colId, cardId, taskAddedDate) {
   textDiv.classList.add("task-text");
 
   const textElement = document.createElement("p");
-  textElement.innerText = taskText;
+  textElement.innerHTML = taskText;
 
   const dateElement = document.createElement("small");
   dateElement.innerText = `Added to ${colId}: ${taskAddedDate}`;
@@ -206,9 +207,9 @@ function createTaskElement(taskText, colId, cardId, taskAddedDate) {
   cardIdElement.innerText = Date.now();
 
   editButton.addEventListener("click", function () {
-    const newText = prompt("Enter new text", textElement.textContent);
-    if (newText && newText !== textElement.textContent) {
-      textElement.textContent = newText;
+    const newText = prompt("Enter new text", textElement.innerHTML);
+    if (newText && newText !== textElement.innerHTML) {
+      textElement.innerHTML = newText;
       updateLocalStorage(cardIdElement.innerText, colId);
     }
   });

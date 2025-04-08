@@ -32,6 +32,7 @@ body {
 }
 
 .board {
+  
   max-width: 450px;
   max-height: 730px;
   gap: 10px;
@@ -72,10 +73,18 @@ body {
   justify-content: start;
   align-items: start;
   width: 380px;
+  min-height: fit-content;
+  max-height: 250px;
   gap: 10px;
   margin-bottom: 5px;
   padding: 5px;
   /* border: 2px solid; */
+}
+
+.task-text p{
+  max-height: fit-content;
+  min-height: 20px;
+  /* border: 2px solid #000000; */
 }
 
 .task-container {
@@ -112,15 +121,11 @@ input {
   background-color: #1d05a5;
 }
 
-
-
-
 .task-text p {
   max-height: 100px;
   overflow-y: auto;
   word-wrap: break-word;
 }
-
 
 .card-id {
   display: none;
